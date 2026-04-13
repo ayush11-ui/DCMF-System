@@ -96,6 +96,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.32/dist/lenis.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body x-data="appData()" x-init="initApp()" class="antialiased overflow-x-hidden transition-colors duration-300">
 
@@ -262,7 +264,13 @@
                     // Fetch notifications poll
                     if (this.user.id) {
                         this.fetchNotifications();
-                        setInterval(() => this.fetchNotifications(), 60000);
+                        
+                        // Real-time notifications
+                        window.Echo?.private(`notifications.${this.user.id}`)
+                            .listen('.notification.received', (e) => {
+                                this.fetchNotifications();
+                                this.showToast(e.notification.title + ': ' + e.notification.message);
+                            });
                     }
                     
                     // Init Lenis

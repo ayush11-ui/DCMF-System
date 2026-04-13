@@ -212,12 +212,15 @@
                     this.fetchRecentCases();
                     this.fetchHearings();
                     
-                    // Dashboard Auto-Refresh every 60 seconds
-                    setInterval(() => {
-                        this.fetchStats();
-                        this.fetchRecentCases();
-                        this.fetchHearings();
-                    }, 60000);
+                    // Real-time Dashboard Updates
+                    window.Echo?.channel('dcfm-updates')
+                        .listen('.case.updated', (e) => {
+                            this.fetchStats();
+                            this.fetchRecentCases();
+                        })
+                        .listen('.hearing.scheduled', (e) => {
+                            this.fetchHearings();
+                        });
                 }, 100);
             },
             

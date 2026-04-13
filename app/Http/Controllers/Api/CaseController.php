@@ -7,6 +7,8 @@ use App\Models\CaseFile;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Events\CaseUpdated;
+use App\Events\NotificationReceived;
 
 class CaseController extends Controller
 {
@@ -105,24 +107,28 @@ class CaseController extends Controller
             
             // Create Notifications
             if ($case->assigned_judge_id) {
-                \App\Models\DcfmNotification::create([
+                $notification = \App\Models\DcfmNotification::create([
                     'user_id' => $case->assigned_judge_id,
                     'case_id' => $case->id,
                     'title' => 'New Case Assigned',
                     'message' => "You have been assigned as the presiding judge for case: {$case->case_number}",
                     'type' => 'assignment',
                 ]);
+                event(new NotificationReceived($notification));
             }
 
             if ($case->assigned_lawyer_id) {
-                \App\Models\DcfmNotification::create([
+                $notification = \App\Models\DcfmNotification::create([
                     'user_id' => $case->assigned_lawyer_id,
                     'case_id' => $case->id,
                     'title' => 'New Case Assignment',
                     'message' => "You have been recorded as the lawyer for case: {$case->case_number}",
                     'type' => 'assignment',
                 ]);
+                event(new NotificationReceived($notification));
             }
+
+            event(new CaseUpdated($case));
 
             AuditLog::create([
                 'user_id' => $request->user()->id,

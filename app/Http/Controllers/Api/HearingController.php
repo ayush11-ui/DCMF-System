@@ -7,6 +7,9 @@ use App\Models\Hearing;
 use App\Models\CaseFile;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Events\HearingScheduled;
+use App\Events\NotificationReceived;
+use App\Events\CaseUpdated;
 
 class HearingController extends Controller
 {
@@ -78,25 +81,30 @@ class HearingController extends Controller
 
         // Notify Judge
         if ($case->assigned_judge_id) {
-            \App\Models\DcfmNotification::create([
+            $notification = \App\Models\DcfmNotification::create([
                 'user_id' => $case->assigned_judge_id,
                 'case_id' => $case->id,
                 'title' => 'New Hearing Scheduled',
                 'message' => "A new hearing for case {$case->case_number} has been scheduled for {$nextDate->format('Y-m-d')} at 10:30 AM.",
                 'type' => 'hearing',
             ]);
+            event(new NotificationReceived($notification));
         }
 
         // Notify Lawyer
         if ($case->assigned_lawyer_id) {
-            \App\Models\DcfmNotification::create([
+            $notification = \App\Models\DcfmNotification::create([
                 'user_id' => $case->assigned_lawyer_id,
                 'case_id' => $case->id,
                 'title' => 'Hearing Notice',
                 'message' => "Hearing scheduled for case {$case->case_number} on {$nextDate->format('Y-m-d')}.",
                 'type' => 'hearing',
             ]);
+            event(new NotificationReceived($notification));
         }
+
+        event(new HearingScheduled($hearing));
+        event(new CaseUpdated($case));
 
         $case->update(['next_hearing_date' => clone $nextDate->setTime(10, 30)]);
 
