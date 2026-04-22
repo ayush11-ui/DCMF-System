@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "outputDirectory": ".",
   "functions": {
     "api/index.php": {
       "runtime": "vercel-php@0.7.1"
@@ -18,7 +19,6 @@
   "env": {
     "APP_ENV": "production",
     "APP_DEBUG": "false",
-    "APP_URL": "https://dcfm-app.vercel.app",
     "LOG_CHANNEL": "stderr",
     "SESSION_DRIVER": "cookie",
     "CACHE_DRIVER": "array"
